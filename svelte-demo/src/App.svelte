@@ -1,29 +1,55 @@
 <script>
-	import { fade, fly } from "svelte/transition";
+	import {fade} from "svelte/transition";
+	import {randomStore} from "./store";
+
+
+	import Child from "./Child.svelte"
+
+
+	let data = {
+		userId: 12345,
+		name: 'Solomon',
+		email: 'Solomon.Pierce@utdallas.edu'
+	}
+
 	export let name;
 
-	let rando;
-	$: result = Math.round(rando * 100) ;
+	let randos = [];
+	
 	function setRando(){
-		rando = Math.random();
+		const rando = Math.random();
+		randos = [...randos, rando];
 	}
+
+	function delay(ms){
+		return new Promise(resolve => setTimeout(resolve, ms));
+	}
+
+	let rando = delay(2000).then(v => Math.random());
+
 </script>
 
 <main>
 	<h1>Hello {name}</h1>
-	<h1>{rando}</h1>
-	<h1>{result}</h1>
-	<button on:click={setRando}>Randomize</button>
-	<input bind:value={rando}>
+	<button on:click={setRando}>Push</button>
+	<ul>
+		{#each randos as val, idx}
+			<li in:fade>{val}</li>
+		{/each}
+	</ul>
 
-	<p>Your score is {result}</p>
-	{#if result > 75}
-		<p in:fade>You passed!</p>
-	{:else if result < 75}
-		<p in:fade>You failed!</p>
-	{:else}
-		<p in:fade>You didn't take the test!</p>
-	{/if}
+	{#await rando}
+		<p>thinking about it...</p>
+	{:then number}
+		<p> Result {number}</p>
+	{:catch error}
+		<p> {error.message}</p>
+	{/await}
+
+	{$randomStore}
+	<button on:click={() => randomStore.set(Math.random())}></button>
+
+	<Child {...data}></Child>
 </main>
 
 <style>
